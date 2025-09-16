@@ -1,0 +1,75 @@
+﻿@*@{
+        ViewBag.Title = "Sales Report";
+    }
+
+    <h2>Sales Report (@ViewBag.Period.ToUpper())</h2>
+
+    <div class="btn-group" style="margin-bottom:15px;">
+        @Html.ActionLink("Daily", "Report", new { period = "daily" }, new { @class = "btn btn-primary" })
+        @Html.ActionLink("Weekly", "Report", new { period = "weekly" }, new { @class = "btn btn-primary" })
+        @Html.ActionLink("Monthly", "Report", new { period = "monthly" }, new { @class = "btn btn-primary" })
+    </div>
+
+    <table class="table table-bordered table-striped">
+        <tr>
+            <th>Total Revenue</th>
+            <td>@ViewBag.TotalRevenue</td>
+        </tr>
+        <tr>
+            <th>Total Cost</th>
+            <td>@ViewBag.TotalCost</td>
+        </tr>
+        <tr>
+            <th>Profit</th>
+            <td><strong>@ViewBag.Profit</strong></td>
+        </tr>
+    </table>*@
+
+
+@{
+    ViewBag.Title = "Sales Report";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary">Sales Report @ViewBag.Period</h2>
+        <div class="btn-group">
+            @Html.ActionLink("Daily", "Report", new { period = "daily" }, new { @class = "btn btn-outline-primary" })
+            @Html.ActionLink("Weekly", "Report", new { period = "weekly" }, new { @class = "btn btn-outline-primary" })
+            @Html.ActionLink("Monthly", "Report", new { period = "monthly" }, new { @class = "btn btn-outline-primary" })
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card text-white bg-success h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Revenue</h5>
+                    <p class="card-text fs-4">@String.Format("{0:C}", ViewBag.TotalRevenue)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-warning h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Cost</h5>
+                    <p class="card-text fs-4">@String.Format("{0:C}", ViewBag.TotalCost)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-primary h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Profit</h5>
+                    <p class="card-text fs-4">@String.Format("{0:C}", ViewBag.Profit)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="@Url.Action("Index","SaleItems" )" class="btn btn-outline-secondary">View Detailed Sale Items</a>
+    </div>
+</div>

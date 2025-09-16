@@ -1,0 +1,152 @@
+﻿@*@{
+        ViewBag.Title = "Multi-Product Sale";
+    }
+
+    <h2>Sell Multiple Products</h2>
+
+    @using (Html.BeginForm("SellMultiple", "Products", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        <table class="table table-bordered" id="saleTable">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Sale Price</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>@Html.DropDownList("ProductIds", (SelectList)ViewBag.Products, "Select Product", new { @class = "form-control" })</td>
+                    <td><input type="number" name="Quantities" class="form-control" min="1" /></td>
+                    <td><input type="number" name="SalePrices" class="form-control" step="0.01" min="0" /></td>
+                    <td><button type="button" class="btn btn-danger remove-row">X</button></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <button type="button" id="addRow" class="btn btn-success">+ Add Product</button>
+        <hr />
+        <button type="submit" class="btn btn-primary">Save Sale</button>
+    }
+
+    @section scripts {
+        <script src="~/Scripts/jquery-3.6.0.min.js"></script>
+        <script>
+        $(function () {
+            $("#addRow").click(function () {
+                var row = $("#saleTable tbody tr:first").clone();
+                row.find("input").val("");
+                $("#saleTable tbody").append(row);
+            });
+
+            $(document).on("click", ".remove-row", function () {
+                if ($("#saleTable tbody tr").length > 1) {
+                    $(this).closest("tr").remove();
+                }
+            });
+        });
+        </script>
+    }*@
+
+
+@{
+    ViewBag.Title = "Multi-Product Sale";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container mt-5">
+    <div class="card shadow">
+        <div class="card-header bg-info text-white">
+            <h3>Sell Multiple Products</h3>
+        </div>
+        <div class="card-body">
+            @using (Html.BeginForm("SellMultiple", "Products", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+
+                <table class="table table-bordered table-hover" id="saleTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Sale Price</th>
+                            <th>Line Total</th>
+                            <th style="width:50px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>@Html.DropDownList("ProductIds", (SelectList)ViewBag.Products, "Select Product", new { @class = "form-select product-select" })</td>
+                            <td><input type="number" name="Quantities" class="form-control qty" min="1" value="1" /></td>
+                            <td><input type="number" name="SalePrices" class="form-control price" step="0.01" min="0.01" value="0.00" /></td>
+                            <td class="line-total">0.00</td>
+                            <td><button type="button" class="btn btn-danger btn-sm remove-row">X</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="mb-3 text-end">
+                    <strong>Total: $<span id="totalAmount">0.00</span></strong>
+                </div>
+
+                <div class="mb-3">
+                    <button type="button" id="addRow" class="btn btn-success">+ Add Product</button>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg">Save Sale</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(function () {
+
+            function updateLineTotal(row) {
+                const qty = parseFloat(row.find('.qty').val()) || 0;
+                const price = parseFloat(row.find('.price').val()) || 0;
+                const total = (qty * price).toFixed(2);
+                row.find('.line-total').text(total);
+                updateGrandTotal();
+            }
+
+            function updateGrandTotal() {
+                let total = 0;
+                $('#saleTable tbody tr').each(function () {
+                    total += parseFloat($(this).find('.line-total').text()) || 0;
+                });
+                $('#totalAmount').text(total.toFixed(2));
+            }
+
+            // Update totals on input change
+            $(document).on('input', '.qty, .price', function () {
+                updateLineTotal($(this).closest('tr'));
+            });
+
+            // Add new row
+            $('#addRow').click(function () {
+                const newRow = $('#saleTable tbody tr:first').clone();
+                newRow.find('input').val('');
+                newRow.find('.line-total').text('0.00');
+                newRow.find('.product-select').val('');
+                $('#saleTable tbody').append(newRow);
+            });
+
+            // Remove row
+            $(document).on('click', '.remove-row', function () {
+                if ($('#saleTable tbody tr').length > 1) {
+                    $(this).closest('tr').remove();
+                    updateGrandTotal();
+                }
+            });
+        });
+    </script>
+}

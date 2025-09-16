@@ -1,0 +1,153 @@
+﻿
+@{
+    ViewBag.Title = "Products";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Products</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createProductModal">
+            + Add Product
+        </button>
+    </div>
+
+    <div class="mb-3">
+        <input type="text" id="searchInput" class="form-control" placeholder="Search by product name or type...">
+    </div>
+
+    <table class="table table-bordered table-striped" id="productsTable">
+        <thead class="table-dark">
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Cost Price</th>
+                <th>Qty On Hand</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.ProductType.TypeName</td>
+                    <td>@item.CostPrice.ToString("C")</td>
+                    <td>@item.QtyOnHand</td>
+                    <td>
+                        <button class="btn btn-success btn-sm addStockBtn"
+                                data-productid="@item.ProductId"
+                                data-productname="@item.Name"
+                                data-costprice="@item.CostPrice">
+                            Add Stock
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- ================== CREATE PRODUCT MODAL ================== -->
+<div class="modal fade" id="createProductModal" tabindex="-1" aria-labelledby="createProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            @using (Html.BeginForm("Create", "Products", FormMethod.Post, new { id = "createProductForm" }))
+            {
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createProductModalLabel">Add New Product</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        @Html.Label("Product Type", new { @class = "form-label" })
+                        @Html.DropDownList("TypeId", (SelectList)ViewBag.TypeId, "-- Select Type --", new { @class = "form-select" })
+                    </div>
+                    <div class="mb-3">
+                        @Html.Label("Name", new { @class = "form-label" })
+                        <input type="text" name="Name" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        @Html.Label("Qty On Hand", new { @class = "form-label" })
+                        <input type="number" name="QtyOnHand" class="form-control" min="0" required />
+                    </div>
+                    <div class="mb-3">
+                        @Html.Label("Cost Price", new { @class = "form-label" })
+                        <input type="number" step="0.01" name="CostPrice" class="form-control" min="0" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save Product</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- ================== ADD STOCK MODAL ================== -->
+<div class="modal fade" id="addStockModal" tabindex="-1" aria-labelledby="addStockModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="addStockForm" method="post" action="@Url.Action("AddStock", "Products")">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addStockModalLabel">Add Stock</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="ProductId" name="ProductId" />
+                    <div class="mb-3">
+                        <label>Product</label>
+                        <input type="text" id="ProductName" class="form-control" readonly />
+                    </div>
+                    <div class="mb-3">
+                        <label>Quantity to Add</label>
+                        <input type="number" name="Quantity" class="form-control" min="1" required />
+                    </div>
+                    <div class="mb-3">
+                        <label>Cost Price (optional, leave blank to keep current)</label>
+                        <input type="number" name="CostPrice" class="form-control" step="0.01" min="0" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Search filter
+            $("#searchInput").on("keyup", function () {
+                var value = $(this).val().toLowerCase();
+                $("#productsTable tbody tr").filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+
+            // Open Add Stock modal
+            $(".addStockBtn").click(function () {
+                var productId = $(this).data("productid");
+                var productName = $(this).data("productname");
+                var costPrice = $(this).data("costprice");
+
+                $("#ProductId").val(productId);
+                $("#ProductName").val(productName);
+                $("#addStockForm input[name='CostPrice']").val(costPrice);
+
+                var modal = new bootstrap.Modal(document.getElementById('addStockModal'));
+                modal.show();
+            });
+        });
+    </script>
+}
