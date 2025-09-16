@@ -1,31 +1,311 @@
-﻿@{
-    ViewBag.Title = "Home Page";
+﻿@*@{
+        ViewBag.Title = "Home Page";
+    }
+
+    <div class="jumbotron">
+        <h1>ASP.NET</h1>
+        <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
+        <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <h2>Getting started</h2>
+            <p>
+                ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
+                enables a clean separation of concerns and gives you full control over markup
+                for enjoyable, agile development.
+            </p>
+            <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
+        </div>
+        <div class="col-md-4">
+            <h2>Get more libraries</h2>
+            <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
+            <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
+        </div>
+        <div class="col-md-4">
+            <h2>Web Hosting</h2>
+            <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
+            <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
+        </div>
+    </div>*@
+
+
+@{
+    ViewBag.Title = "Shopify";
 }
 
-<div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
-</div>
+<script>
+$(document).ready(function () {
+    // Helper function to fetch JSON data
+    function fetchJson(url, successCallback, errorCallback) {
+        $.getJSON(url)
+            .done(successCallback)
+            .fail(errorCallback);
+    }
 
-<div class="row">
-    <div class="col-md-4">
-        <h2>Getting started</h2>
-        <p>
-            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-            enables a clean separation of concerns and gives you full control over markup
-            for enjoyable, agile development.
-        </p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
+    // Fetch Accident Count
+    fetchJson('@Url.Action("GetAccidentCount", "Accidents")',
+        function (data) { $('#accidentCount').text(data.count || '0'); },
+        function () { $('#accidentCount').text('Error'); }
+    );
+
+    // Fetch Proforma Count
+    fetchJson('@Url.Action("GetProformaCount", "Proformas")',
+        function (data) { $('#proformaCount').text(data.count || '0'); },
+        function () { $('#proformaCount').text('Error'); }
+    );
+
+    // Fetch Maintenance Count
+    fetchJson('@Url.Action("GetMaintenanceCount", "Maintenances")',
+        function (data) { $('#maintenanceCount').text(data.count || '0'); },
+        function () { $('#maintenanceCount').text('Error'); }
+    );
+
+    // Fetch User Count
+    fetchJson('@Url.Action("GetUserCount", "Users")',
+        function (data) { $('#userCount').text(data.count || '0'); },
+        function () { $('#userCount').text('Error'); }
+    );
+
+    // Fetch Recent Accidents
+    fetchJson('@Url.Action("GetRecentAccidents", "Accidents")', function (data) {
+        let html = '';
+        if (data && data.length > 0) {
+            data.forEach(function (accident) {
+                let detailsUrl = '@Url.Action("Details", "Accidents", new { id = "__id__" })'.replace('__id__', accident.CaseID);
+                html += `<tr>
+                    <td>${accident.CaseID}</td>
+                    <td>${new Date(accident.AccidentDate).toLocaleDateString()}</td>
+                    <td>${accident.PlateNo || 'N/A'}</td>
+                    <td>${accident.Status || 'Unknown'}</td>
+                    <td><a href="${detailsUrl}" class="btn btn-sm btn-primary">Details</a></td>
+                </tr>`;
+            });
+        } else {
+            html = '<tr><td colspan="5">No recent accidents found.</td></tr>';
+        }
+        $('#recentAccidents').html(html);
+    }, function () {
+        $('#recentAccidents').html('<tr><td colspan="5">Error loading accidents.</td></tr>');
+    });
+
+    // Fetch Accident Status for Chart
+    fetchJson('@Url.Action("GetStatusDistribution", "Accidents")', function (data) {
+        const ctx = document.getElementById('accidentStatusChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: data.labels || ['Open', 'In Progress', 'Closed'],
+                datasets: [{
+                    data: data.values || [0, 0, 0],
+                    backgroundColor: ['#007bff', '#ffc107', '#28a745']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' }
+                }
+            }
+        });
+    }, function () {
+        $('#accidentStatusChart').replaceWith('<p>Error loading chart.</p>');
+    });
+
+    // Fetch To-Do List (Follow-Up Tasks)
+    fetchJson('@Url.Action("GetPendingTasks", "Maintenances")', function (data) {
+        let html = '';
+        if (data && data.length > 0) {
+            data.forEach(function (task, index) {
+                let detailsUrl = '@Url.Action("Details", "Maintenances", new { id = "__id__" })'.replace('__id__', task.MaintenanceID);
+                html += `<li>
+                    <span class="handle">
+                        <i class="fas fa-ellipsis-v"></i>
+                        <i class="fas fa-ellipsis-v"></i>
+                    </span>
+                    <div class="icheck-primary d-inline ml-2">
+                        <input type="checkbox" name="todo${index}" id="todoCheck${index}" ${task.completed ? 'checked' : ''}>
+                        <label for="todoCheck${index}"></label>
+                    </div>
+                    <span class="text">${task.description}</span>
+                    <small class="badge badge-${task.urgency || 'primary'}"><i class="far fa-clock"></i> ${task.dueDate}</small>
+                    <div class="tools">
+                        <a href="${detailsUrl}" class="fas fa-edit"></a>
+                    </div>
+                </li>`;
+            });
+        } else {
+            html = '<li>No pending tasks.</li>';
+        }
+        $('#todoList').html(html);
+    }, function () {
+        $('#todoList').html('<li>Error loading tasks.</li>');
+    });
+});
+</script>
+
+<div class="app-content">
+    <!--begin::Container-->
+    <div class="container-fluid">
+        <!--begin::App Content Header-->
+        <div class="app-content-header">
+            <!--begin::Row-->
+            <div class="row">
+                <div class="col-sm-6"><h3 class="mb-0">Dashboard</h3></div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-end">
+                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                    </ol>
+                </div>
+            </div>
+            <!--end::Row-->
+        </div>
+        <!--end::App Content Header-->
+        <!--begin::Row-->
+        <div class="row">
+            <!--begin::Col-->
+            <div class="col-lg-3 col-6">
+                <div class="small-box text-bg-primary">
+                    <div class="inner">
+                        <h3 id="accidentCount">Loading...</h3>
+                        <p>Open Accidents</p>
+                    </div>
+                    <svg class="small-box-icon" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 .75h.008v.008h-.008V11.25z"></path>
+                    </svg>
+                    <a href="@Url.Action("Index", "Accidents")" class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover">
+                        More info <i class="bi bi-link-45deg"></i>
+                    </a>
+                </div>
+            </div>
+            <!--end::Col-->
+            <div class="col-lg-3 col-6">
+                <div class="small-box text-bg-success">
+                    <div class="inner">
+                        <h3 id="proformaCount">Loading...</h3>
+                        <p>Winning Proformas</p>
+                    </div>
+                    <svg class="small-box-icon" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M19.5 3h-3V1.5H15V3H9V1.5H7.5V3h-3A3.75 3.75 0 00.75 6.75v12A3.75 3.75 0 004.5 22.5h15a3.75 3.75 0 003.75-3.75v-12A3.75 3.75 0 0019.5 3zM21 18.75a1.25 1.25 0 01-1.25 1.25h-15A1.25 1.25 0 013.25 18.75V10.5h17.5v8.25zM3.25 9V6.75A1.25 1.25 0 014.5 5.5h15A1.25 1.25 0 0120.75 6.75V9H3.25z"></path>
+                    </svg>
+                    <a href="@Url.Action("Index", "Proformas")" class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover">
+                        More info <i class="bi bi-link-45deg"></i>
+                    </a>
+                </div>
+            </div>
+            <!--end::Col-->
+            <div class="col-lg-3 col-6">
+                <div class="small-box text-bg-warning">
+                    <div class="inner">
+                        <h3 id="maintenanceCount">Loading...</h3>
+                        <p>Ongoing Maintenance</p>
+                    </div>
+                    <svg class="small-box-icon" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M12 3.75a.75.75 0 01.75.75V6h7.5a.75.75 0 010 1.5h-7.5v3h4.5a.75.75 0 010 1.5h-4.5v8.25a.75.75 0 01-1.5 0V12h-4.5a.75.75 0 010-1.5h4.5V7.5h-7.5a.75.75 0 010-1.5h7.5V4.5a.75.75 0 01.75-.75z"></path>
+                    </svg>
+                    <a href="@Url.Action("Index", "Maintenances")" class="small-box-footer link-dark link-underline-opacity-0 link-underline-opacity-50-hover">
+                        More info <i class="bi bi-link-45deg"></i>
+                    </a>
+                </div>
+            </div>
+            <!--end::Col-->
+            <div class="col-lg-3 col-6">
+                <div class="small-box text-bg-danger">
+                    <div class="inner">
+                        <h3 id="userCount">Loading...</h3>
+                        <p>Active Users</p>
+                    </div>
+                    <svg class="small-box-icon" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M6.25 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM3.25 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122zM19.75 7.5a.75.75 0 00-1.5 0v2.25H16a.75.75 0 000 1.5h2.25v2.25a.75.75 0 001.5 0v-2.25H22a.75.75 0 000-1.5h-2.25V7.5z"></path>
+                    </svg>
+                    <a href="@Url.Action("Index", "Users")" class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover">
+                        More info <i class="bi bi-link-45deg"></i>
+                    </a>
+                </div>
+            </div>
+            <!--end::Col-->
+        </div>
+        <!--end::Row-->
+        <!--begin::Row-->
+        <div class="row">
+            <!--begin::Col-->
+            <div class="col-lg-7 connectedSortable">
+                <!-- Recent Accidents -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-car-crash mr-1"></i>
+                            Recent Accidents
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Case ID</th>
+                                    <th>Date</th>
+                                    <th>Vehicle</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentAccidents">
+                                <tr><td colspan="5">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Accident Status Chart -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-pie mr-1"></i>
+                            Accident Status
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="accidentStatusChart" style="min-height: 250px; height: 250px;"></canvas>
+                    </div>
+                </div>
+
+            </div>
+            <!--end::Col-->
+            <!--begin::Col-->
+            <div class="col-lg-5 connectedSortable">
+                <!-- To-Do List -->
+                <div class="card text-white bg-primary bg-gradient border-primary mb-4">
+                    <div class="card-header border-0">
+                        <h3 class="card-title">
+                            <i class="fas fa-clipboard mr-1"></i>
+                            Follow-Up Tasks
+                        </h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-primary btn-sm" data-lte-toggle="card-collapse">
+                                <i data-lte-icon="expand" class="bi bi-plus-lg"></i>
+                                <i data-lte-icon="collapse" class="bi bi-dash-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <ul class="todo-list" data-widget="todo-list" id="todoList">
+                            <li>Loading tasks...</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer border-0">
+
+                        <a href="@Url.Action("Create", "Maintenances")" class="btn btn-primary float-end">
+                            <i class="fas fa-plus"></i> Add Task
+                        </a>
+
+                    </div>
+                </div>
+                <!--end::Col-->
+            </div>
+            <!--end::Row-->
+        </div>
+        <!--end::Container-->
     </div>
-    <div class="col-md-4">
-        <h2>Get more libraries</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Web Hosting</h2>
-        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-    </div>
-</div>
+    <!--end::App Content-->
