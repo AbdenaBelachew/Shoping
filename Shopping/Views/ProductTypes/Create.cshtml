@@ -1,0 +1,31 @@
+﻿@model Shopping.Models.ProductType
+
+@{
+    ViewBag.Title = "Create Product Type";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h3>Create Product Type</h3>
+        </div>
+        <div class="card-body">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true, "", new { @class = "text-danger mb-3" })
+
+                <div class="mb-3">
+                    @Html.LabelFor(model => model.TypeName, htmlAttributes: new { @class = "form-label" })
+                    @Html.EditorFor(model => model.TypeName, new { htmlAttributes = new { @class = "form-control", placeholder = "Enter product type name" } })
+                    @Html.ValidationMessageFor(model => model.TypeName, "", new { @class = "text-danger" })
+                </div>
+
+                <button type="submit" class="btn btn-success">Create</button>
+                <a href="@Url.Action("Index")" class="btn btn-secondary ms-2">Back to List</a>
+            }
+        </div>
+    </div>
+</div>
