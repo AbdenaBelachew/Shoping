@@ -46,17 +46,23 @@ namespace Shopping.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "TypeId,TypeName")] ProductType productType)
+        public ActionResult Create(ProductType type)
         {
             if (ModelState.IsValid)
             {
-                db.ProductTypes.Add(productType);
+                db.ProductTypes.Add(type);
                 db.SaveChanges();
-                return RedirectToAction("Index");
+                return Json(new { success = true });
             }
 
-            return View(productType);
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+
+            return Json(new { success = false, errors });
         }
+
 
         // GET: ProductTypes/Edit/5
         public ActionResult Edit(int? id)

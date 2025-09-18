@@ -16,7 +16,8 @@ namespace Shopping.Controllers
 
         public ActionResult Index()
         {
-            var saleItems = db.SaleItems.Include(s => s.Product).Include(s => s.Sale).ToList();
+            var saleItems = db.SaleItems.Include(s => s.Product).Include(s => s.Sale).Where(a=>a.date.Year
+            == DateTime.Now.Year).ToList();
             return View(saleItems);
         }
 
