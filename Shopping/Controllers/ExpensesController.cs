@@ -65,5 +65,28 @@ namespace Shopping.Controllers
             return View(expense);
         }
 
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult DeleteConfirmed(int id)
+        {
+            try
+            {
+                var expense = db.Expenses.Find(id);
+                if (expense == null)
+                    return Json(new { success = false, message = "Expense not found." });
+
+                db.Expenses.Remove(expense);
+                db.SaveChanges();
+
+                return Json(new { success = true, message = "Expense deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+
     }
 }
