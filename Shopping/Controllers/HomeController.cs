@@ -31,6 +31,7 @@ namespace Shopping.Controllers
             ViewBag.TotalCost = totalCost;
             ViewBag.Profit = profit;
             ViewBag.TotalExpenses = totalExpenses;
+            ViewBag.totalcosts = totalExpenses + totalCost;
             ViewBag.NetProfit = netProfit;
             return View();
         }

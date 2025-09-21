@@ -99,6 +99,7 @@ namespace Shopping.Controllers
                 Session["UserId"] = user.UserId;
                 Session["Username"] = user.username;
                 Session["Role"] = user.role;
+                Session["Fullname"] = user.full_name;
 
                 if (user.MustChangePassword)
                 {
@@ -108,6 +109,7 @@ namespace Shopping.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            ViewBag.Username = Session["Username"];
             ViewBag.Error = "Invalid username, password, or licence expired";
             return View();
         }
