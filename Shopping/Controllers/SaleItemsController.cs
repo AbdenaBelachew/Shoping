@@ -14,11 +14,49 @@ namespace Shopping.Controllers
     {
         private dambalEntities db = new dambalEntities();
 
-        public ActionResult Index()
+        public ActionResult sales()
         {
-            var saleItems = db.SaleItems.Include(s => s.Product).Include(s => s.Sale).Where(a=>a.date.Year
+            var saleItems = db.SaleItems.Include(s => s.Product).Include(s => s.Sale).Where(a => a.date.Year
             == DateTime.Now.Year).ToList();
             return View(saleItems);
+        }
+
+        public ActionResult Index(string period = "daily", string selectedDate = null)
+        {
+            DateTime now = DateTime.Now;
+            DateTime reportDate;
+
+            if (!string.IsNullOrEmpty(selectedDate) && DateTime.TryParse(selectedDate, out DateTime parsedDate))
+                reportDate = parsedDate;
+            else
+                reportDate = now;
+
+            IQueryable<SaleItem> sales = db.SaleItems
+                .Include(s => s.Product)
+                .Include(s => s.Sale);
+
+            switch (period.ToLower())
+            {
+                case "daily":
+                    sales = sales.Where(s => DbFunctions.TruncateTime(s.date) == DbFunctions.TruncateTime(reportDate));
+                    break;
+
+                case "weekly":
+                    DateTime startOfWeek = reportDate.AddDays(-(int)reportDate.DayOfWeek);
+                    DateTime endOfWeek = startOfWeek.AddDays(7);
+                    sales = sales.Where(s => s.date >= startOfWeek && s.date < endOfWeek);
+                    break;
+
+                case "monthly":
+                    sales = sales.Where(s => s.date.Month == reportDate.Month && s.date.Year == reportDate.Year);
+                    break;
+
+                default:
+                    sales = sales.Where(s => DbFunctions.TruncateTime(s.date) == DbFunctions.TruncateTime(now));
+                    break;
+            }
+
+            return View(sales.ToList());
         }
 
 

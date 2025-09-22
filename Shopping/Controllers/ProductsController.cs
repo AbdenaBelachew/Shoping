@@ -229,28 +229,38 @@ namespace Shopping.Controllers
             TempData["Success"] = "Sale completed successfully!";
             return RedirectToAction("Index");
         }
-
-
-
-        // REPORT: Daily / Weekly / Monthly Profit
-        public ActionResult Report(string period = "daily")
+  
+        public ActionResult Report(string period = "daily", string selectedDate = null)
         {
             DateTime now = DateTime.Now;
-            IQueryable<SaleItem> sales = db.SaleItems.Include(s => s.Product);
+            DateTime reportDate;
+
+            if (!string.IsNullOrEmpty(selectedDate) && DateTime.TryParse(selectedDate, out DateTime parsedDate))
+                reportDate = parsedDate;
+            else
+                reportDate = now;
+
+            IQueryable<SaleItem> sales = db.SaleItems.Include(s => s.Product).Include(s => s.Sale);
 
             switch (period.ToLower())
             {
                 case "daily":
-                    sales = sales.Where(s => DbFunctions.TruncateTime(s.date) == DbFunctions.TruncateTime(now));
+                    sales = sales.Where(s => DbFunctions.TruncateTime(s.date) == DbFunctions.TruncateTime(reportDate));
                     break;
 
                 case "weekly":
-                    DateTime startOfWeek = now.AddDays(-(int)now.DayOfWeek); // Sunday start
-                    sales = sales.Where(s => s.date >= startOfWeek && s.date <= now);
+                    DateTime startOfWeek = reportDate.AddDays(-(int)reportDate.DayOfWeek);
+                    DateTime endOfWeek = startOfWeek.AddDays(7);
+
+                    sales = sales.Where(s => s.date >= startOfWeek && s.date < endOfWeek);
+
+                    ViewBag.WeekStart = startOfWeek.ToString("MM/dd/yyyy");
+                    ViewBag.WeekEnd = endOfWeek.AddDays(-1).ToString("MM/dd/yyyy");
                     break;
 
                 case "monthly":
-                    sales = sales.Where(s => s.date.Month == now.Month && s.date.Year == now.Year);
+                    sales = sales.Where(s => s.date.Month == reportDate.Month && s.date.Year == reportDate.Year);
+                    ViewBag.Month = reportDate.ToString("MMMM yyyy");
                     break;
 
                 default:
@@ -259,22 +269,114 @@ namespace Shopping.Controllers
             }
 
             var report = sales
-                .GroupBy(s => 1) // single group
+                .GroupBy(s => 1)
                 .Select(g => new
                 {
                     TotalRevenue = g.Sum(x => x.LineTotal),
                     TotalCost = g.Sum(x => x.CostPrice * x.Quantity),
                     Profit = g.Sum(x => x.LineTotal) - g.Sum(x => x.CostPrice * x.Quantity)
                 })
-                .FirstOrDefault();
+                .FirstOrDefault() ?? new { TotalRevenue = (decimal?)0m, TotalCost = 0m, Profit = (decimal?)0m };
 
-            ViewBag.Period = period;
-            ViewBag.TotalRevenue = report?.TotalRevenue ?? 0;
-            ViewBag.TotalCost = report?.TotalCost ?? 0;
-            ViewBag.Profit = report?.Profit ?? 0;
+            // Summary
+            ViewBag.Period = period.ToLower();
+            ViewBag.SelectedDate = reportDate.ToString("yyyy-MM-dd");
+            ViewBag.TotalRevenue = report.TotalRevenue;
+            ViewBag.TotalCost = report.TotalCost;
+            ViewBag.Profit = report.Profit;
+
+            // List of filtered sales
+            ViewBag.SaleItems = sales.OrderByDescending(s => s.date).ToList();
 
             return View();
         }
+
+        // TOP SELLING
+
+        // 📌 Stock Report
+        public ActionResult Stock()
+        {
+            var stockReport = db.Products
+                .Select(p => new StockReportViewModel
+                {
+                    ProductName = p.Name,
+                    QtyOnHand = p.QtyOnHand,
+                    Status = p.QtyOnHand == 0 ? "Out of Stock" :
+                             p.QtyOnHand < 5 ? "Low Stock" :
+                             "In Stock"
+                })
+                .ToList();
+
+            return View(stockReport);
+        }
+
+
+        // 📌 Profit & Loss Report
+        //public ActionResult ProfitLoss(string period = "monthly")
+        //{
+        //    DateTime now = DateTime.Now;
+        //    IQueryable<SaleItem> sales = db.SaleItems;
+
+        //    if (period == "monthly")
+        //        sales = sales.Where(s => s.date.Month == now.Month && s.date.Year == now.Year);
+        //    else if (period == "daily")
+        //        sales = sales.Where(s => DbFunctions.TruncateTime(s.date) == DbFunctions.TruncateTime(now));
+
+        //    var report = new
+        //    {
+        //        TotalRevenue = sales.Sum(s => (decimal?)s.LineTotal) ?? 0,
+        //        TotalCost = sales.Sum(s => (decimal?)(s.CostPrice * s.Quantity)) ?? 0,
+        //    };
+
+        //    ViewBag.TotalRevenue = report.TotalRevenue;
+        //    ViewBag.TotalCost = report.TotalCost;
+        //    ViewBag.Profit = report.TotalRevenue - report.TotalCost;
+
+        //    return View();
+        //}
+
+        public ActionResult ProfitLoss()
+        {
+            // Example calculations - adjust based on your models
+            decimal totalRevenue = db.Sales.Sum(s => s.TotalAmount);
+            decimal totalCost = db.SaleItems.Sum(i => i.CostPrice * i.Quantity);
+            decimal profit = totalRevenue - totalCost;
+
+            var today = DateTime.Today;
+            decimal totalExpenses = db.Expenses
+                .Where(e => e.ExpenseDate.Month == today.Month && e.ExpenseDate.Year == today.Year)
+                .Sum(e => e.Amount);
+
+            decimal netProfit = profit - totalExpenses;
+
+            ViewBag.TotalRevenue = totalRevenue;
+            ViewBag.TotalCost = totalCost;
+            ViewBag.Profit = profit;
+            ViewBag.TotalExpenses = totalExpenses;
+            ViewBag.NetProfit = netProfit;
+
+            return View();
+        }
+
+
+        // 📌 Top-Selling Products
+        public ActionResult TopSelling()
+        {
+            var topProducts = db.SaleItems
+                .GroupBy(s => s.Product.Name)
+                .Select(g => new TopSellingProductViewModel
+                {
+                    ProductName = g.Key,
+                    TotalSold = g.Sum(x => x.Quantity),
+                    Revenue = g.Sum(x => (decimal?)(x.LineTotal) ?? 0) // 👈 handles nulls
+                })
+                .OrderByDescending(x => x.TotalSold)
+                .Take(10)
+                .ToList();
+
+            return View(topProducts);
+        }
+
 
     }
 }
