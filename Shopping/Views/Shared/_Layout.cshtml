@@ -1,11 +1,22 @@
-﻿<!DOCTYPE html>
+﻿
+@if (Session["UserId"] == null)
+{
+    Session.Abandon();
+    Response.Redirect("~/users/Login");
+}
+
+@{
+    var username = Session["Username"].ToString();
+    var fullname = Session["Fullname"].ToString();
+}
+<!DOCTYPE html>
 <html lang="en">
 <!--begin::Head-->
 <head>
     <meta charset='utf-8'>
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
-    <title>Asana Tech</title>
+    <title>ASANA TECHNOLOGY</title>
 
     <!--CSS Styles-->
     <link rel="stylesheet" href="~/dist/assets/adminlte.min.css" />
@@ -82,7 +93,7 @@
                                 <span class="theme-icon-active">
                                     <i class="my-1"></i>
                                 </span>
-                                <span class="d-lg-none ms-2" id="bd-theme-text">Toggle theme</span>
+                                <span class="d-lg-none ms-2" id="bd-theme-text"></span>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end"
                                 aria-labelledby="bd-theme-text"
@@ -129,13 +140,13 @@
                             <li class="user-header text-center">
                                 <img src="~/dist/assets/img/FREE-PROFILE-AVATARS.jpg" class="rounded-circle shadow" alt="User Image" />
                                 <p>
-                                    @ViewBag.Fullname
+                                    @fullname
                                     <br />
-                                    <small>@ViewBag.email | Member Since: @ViewBag.MemberSince</small>
+                                    <small>@username</small>
                                 </p>
                             </li>
                             <li class="user-footer d-flex justify-content-center py-2">
-                                @using (Html.BeginForm("Logout", "Account", FormMethod.Post, new { @class = "float-end" }))
+                                @using (Html.BeginForm("Logout", "users", FormMethod.Post, new { @class = "float-end" }))
                                 {
                                     <button type="submit" class="btn btn-danger btn-sm w-100"><i class="bi bi-box-arrow-right me-1"></i>Sign out</button>
                                 }
@@ -171,13 +182,13 @@
                             </a>
                             <ul class="nav nav-treeview">
                                 <li class="nav-item">
-                                    <a href="~/Users/Create" class="nav-link">
+                                    <a href="~/users/Create" class="nav-link">
                                         <i class="nav-icon bi bi-circle"></i>
                                         <p>Create User</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="~/Users/Index" class="nav-link">
+                                    <a href="~/users/Index" class="nav-link">
                                         <i class="nav-icon bi bi-circle"></i>
                                         <p>Manage User</p>
                                     </a>
@@ -211,11 +222,11 @@
                                     </a>
                                 </li>
                                 @*<li class="nav-item">
-                                    <a href="~/Products/Create" class="nav-link">
-                                        <i class="nav-icon bi bi-circle"></i>
-                                        <p>Add Products </p>
-                                    </a>
-                                </li>*@
+                    <a href="~/Products/Create" class="nav-link">
+                        <i class="nav-icon bi bi-circle"></i>
+                        <p>Add Products </p>
+                    </a>
+                </li>*@
                                 <li class="nav-item">
                                     <a href="~/Products/Index" class="nav-link">
                                         <i class="nav-icon bi bi-circle"></i>
@@ -255,9 +266,9 @@
                                         <p>Reports</p>
                                     </a>
                                     @*<a href="~/Proformas/Index" class="nav-link">
-                                            <i class="bi bi-eye"></i>
-                                            <p>View</p>
-                                        </a>*@
+                        <i class="bi bi-eye"></i>
+                        <p>View</p>
+                    </a>*@
                                 </li>
                             </ul>
                         </li>
@@ -267,14 +278,14 @@
                                 <p>Sales Details <i class="nav-arrow bi bi-chevron-right"></i></p>
                             </a>
                             <ul class="nav nav-treeview">
-                                <li class="nav-item">
+                                @*<li class="nav-item">
                                     <a href="~/Maintenances/Index" class="nav-link">
                                         <i class="bi bi-tools"></i>
                                         <p>Sales Items</p>
                                     </a>
-                                </li>
+                                </li>*@
                                 <li class="nav-item">
-                                    <a href="~/SaleItems/Index" class="nav-link">
+                                    <a href="~/SaleItems/sales" class="nav-link">
                                         <i class="bi bi-arrow-right-circle"></i>
                                         <p>Sales</p>
                                     </a>
@@ -282,115 +293,134 @@
                             </ul>
                         </li>
 
-                        @*<li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="nav-icon bi bi-cash-coin"></i>
-                                    <p>Payments <i class="nav-arrow bi bi-chevron-right"></i></p>
-                                </a>
-                                <ul class="nav nav-treeview">
-                                    <li class="nav-item">
-                                        <a href="~/Payments/Create" class="nav-link">
-                                            <i class="bi bi-plus-circle"></i>
-                                            <p>Register</p>
-                                        </a>
-                                        <a href="~/Payments/Index" class="nav-link">
-                                            <i class="bi bi-eye"></i>
-                                            <p>View</p>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="nav-icon bi bi-x-octagon"></i>
-                                    <p>Total Loss <i class="nav-arrow bi bi-chevron-right"></i></p>
-                                </a>
-                                <ul class="nav nav-treeview">
-                                    <li class="nav-item">
-                                        <a href="~/TotalLosses/Create" class="nav-link">
-                                            <i class="bi bi-plus-circle"></i>
-                                            <p>Register</p>
-                                        </a>
-                                        <a href="~/TotalLosses/Index" class="nav-link">
-                                            <i class="bi bi-eye"></i>
-                                            <p>View</p>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="nav-icon bi bi-cash-coin"></i>
+                                <p>Expenses <i class="nav-arrow bi bi-chevron-right"></i></p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    @*<a href="~/Expenses/Create" class="nav-link">
+                                        <i class="bi bi-plus-circle"></i>
+                                        <p>Register Expenses</p>
+                                    </a>*@
+                                    <a href="~/Expenses/Index" class="nav-link">
+                                        <i class="bi bi-eye"></i>
+                                        <p>View Expenses</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
 
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="nav-icon bi bi-person-vcard"></i>
-                                    <p>Drivers <i class="nav-arrow bi bi-chevron-right"></i></p>
-                                </a>
-                                <ul class="nav nav-treeview">
-                                    <li class="nav-item">
-                                        <a href="~/Drivers/Create" class="nav-link">
-                                            <i class="bi bi-plus-circle"></i>
-                                            <p>Register</p>
-                                        </a>
-                                        <a href="~/Drivers/Index" class="nav-link">
-                                            <i class="bi bi-eye"></i>
-                                            <p>View</p>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="nav-icon bi bi-shield-check"></i>
-                                    <p>Bolo <i class="nav-arrow bi bi-chevron-right"></i></p>
-                                </a>
-                                <ul class="nav nav-treeview">
-                                    <li class="nav-item">
-                                        <a href="~/BoloRegistrations/Create" class="nav-link">
-                                            <i class="bi bi-plus-circle"></i>
-                                            <p>Register</p>
-                                        </a>
-                                        <a href="~/BoloRegistrations/Index" class="nav-link">
-                                            <i class="bi bi-eye"></i>
-                                            <p>View</p>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="nav-icon bi bi-shield-check"></i>
-                                    <p>Road Fund <i class="nav-arrow bi bi-chevron-right"></i></p>
-                                </a>
-                                <ul class="nav nav-treeview">
-                                    <li class="nav-item">
-                                        <a href="~/RoadFundRegistrations/Create" class="nav-link">
-                                            <i class="bi bi-plus-circle"></i>
-                                            <p>Register</p>
-                                        </a>
-                                        <a href="~/RoadFundRegistrations/Index" class="nav-link">
-                                            <i class="bi bi-eye"></i>
-                                            <p>View</p>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="nav-icon bi bi-file-lock"></i>
-                                    <p>Insurance <i class="nav-arrow bi bi-chevron-right"></i></p>
-                                </a>
-                                <ul class="nav nav-treeview">
-                                    <li class="nav-item">
-                                        <a href="~/InsuranceRegistrations/Create" class="nav-link">
-                                            <i class="bi bi-plus-circle"></i>
-                                            <p>Register</p>
-                                        </a>
-                                        <a href="~/InsuranceRegistrations/Index" class="nav-link">
-                                            <i class="bi bi-eye"></i>
-                                            <p>View</p>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>*@
+                        @*<li class="nav-item">
+            <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-cash-coin"></i>
+                <p>Payments <i class="nav-arrow bi bi-chevron-right"></i></p>
+            </a>
+            <ul class="nav nav-treeview">
+                <li class="nav-item">
+                    <a href="~/Payments/Create" class="nav-link">
+                        <i class="bi bi-plus-circle"></i>
+                        <p>Register</p>
+                    </a>
+                    <a href="~/Payments/Index" class="nav-link">
+                        <i class="bi bi-eye"></i>
+                        <p>View</p>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-x-octagon"></i>
+                <p>Total Loss <i class="nav-arrow bi bi-chevron-right"></i></p>
+            </a>
+            <ul class="nav nav-treeview">
+                <li class="nav-item">
+                    <a href="~/TotalLosses/Create" class="nav-link">
+                        <i class="bi bi-plus-circle"></i>
+                        <p>Register</p>
+                    </a>
+                    <a href="~/TotalLosses/Index" class="nav-link">
+                        <i class="bi bi-eye"></i>
+                        <p>View</p>
+                    </a>
+                </li>
+            </ul>
+        </li>
+
+        <li class="nav-item">
+            <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-person-vcard"></i>
+                <p>Drivers <i class="nav-arrow bi bi-chevron-right"></i></p>
+            </a>
+            <ul class="nav nav-treeview">
+                <li class="nav-item">
+                    <a href="~/Drivers/Create" class="nav-link">
+                        <i class="bi bi-plus-circle"></i>
+                        <p>Register</p>
+                    </a>
+                    <a href="~/Drivers/Index" class="nav-link">
+                        <i class="bi bi-eye"></i>
+                        <p>View</p>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-shield-check"></i>
+                <p>Bolo <i class="nav-arrow bi bi-chevron-right"></i></p>
+            </a>
+            <ul class="nav nav-treeview">
+                <li class="nav-item">
+                    <a href="~/BoloRegistrations/Create" class="nav-link">
+                        <i class="bi bi-plus-circle"></i>
+                        <p>Register</p>
+                    </a>
+                    <a href="~/BoloRegistrations/Index" class="nav-link">
+                        <i class="bi bi-eye"></i>
+                        <p>View</p>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-shield-check"></i>
+                <p>Road Fund <i class="nav-arrow bi bi-chevron-right"></i></p>
+            </a>
+            <ul class="nav nav-treeview">
+                <li class="nav-item">
+                    <a href="~/RoadFundRegistrations/Create" class="nav-link">
+                        <i class="bi bi-plus-circle"></i>
+                        <p>Register</p>
+                    </a>
+                    <a href="~/RoadFundRegistrations/Index" class="nav-link">
+                        <i class="bi bi-eye"></i>
+                        <p>View</p>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link">
+                <i class="nav-icon bi bi-file-lock"></i>
+                <p>Insurance <i class="nav-arrow bi bi-chevron-right"></i></p>
+            </a>
+            <ul class="nav nav-treeview">
+                <li class="nav-item">
+                    <a href="~/InsuranceRegistrations/Create" class="nav-link">
+                        <i class="bi bi-plus-circle"></i>
+                        <p>Register</p>
+                    </a>
+                    <a href="~/InsuranceRegistrations/Index" class="nav-link">
+                        <i class="bi bi-eye"></i>
+                        <p>View</p>
+                    </a>
+                </li>
+            </ul>
+        </li>*@
 
                     </ul>
                 </nav>
@@ -403,11 +433,11 @@
             <!--begin::App Content-->
 
             <div class="app-content">
-                <div id="lowStockAlert" class="alert alert-warning alert-dismissible fade show" role="alert" style="display:none;">
+                @*<div id="lowStockAlert" class="alert alert-warning alert-dismissible fade show" role="alert" style="display:none;">
                     <strong>⚠ Low Stock!</strong> Some products are running low:
                     <ul id="lowStockList"></ul>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
+                </div>*@
                 @RenderBody()
             </div>
             <!--end::App Content-->
