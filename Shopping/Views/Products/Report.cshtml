@@ -1,31 +1,4 @@
-﻿@*@{
-        ViewBag.Title = "Sales Report";
-    }
-
-    <h2>Sales Report (@ViewBag.Period.ToUpper())</h2>
-
-    <div class="btn-group" style="margin-bottom:15px;">
-        @Html.ActionLink("Daily", "Report", new { period = "daily" }, new { @class = "btn btn-primary" })
-        @Html.ActionLink("Weekly", "Report", new { period = "weekly" }, new { @class = "btn btn-primary" })
-        @Html.ActionLink("Monthly", "Report", new { period = "monthly" }, new { @class = "btn btn-primary" })
-    </div>
-
-    <table class="table table-bordered table-striped">
-        <tr>
-            <th>Total Revenue</th>
-            <td>@ViewBag.TotalRevenue</td>
-        </tr>
-        <tr>
-            <th>Total Cost</th>
-            <td>@ViewBag.TotalCost</td>
-        </tr>
-        <tr>
-            <th>Profit</th>
-            <td><strong>@ViewBag.Profit</strong></td>
-        </tr>
-    </table>*@
-
-
+﻿@model dynamic
 @{
     ViewBag.Title = "Sales Report";
 }
@@ -33,43 +6,143 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-primary">Sales Report @ViewBag.Period</h2>
-        <div class="btn-group">
-            @Html.ActionLink("Daily", "Report", new { period = "daily" }, new { @class = "btn btn-outline-primary" })
-            @Html.ActionLink("Weekly", "Report", new { period = "weekly" }, new { @class = "btn btn-outline-primary" })
-            @Html.ActionLink("Monthly", "Report", new { period = "monthly" }, new { @class = "btn btn-outline-primary" })
+    <div class="card shadow-lg border-0 rounded-2 mx-auto" style="max-width: 1450px;">
+        <div class="card-header bg-gradient bg-primary text-white text-center rounded-top-4">
+            <h2 class="mb-0"><i class="bi bi-bar-chart-fill"></i> Sales Report</h2>
+        </div>
+        <div class="card-body p-4">
+            <!-- Report Form -->
+            @using (Html.BeginForm("Report", "Products", FormMethod.Get, new { @class = "mb-2" }))
+            {
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="period" class="form-label fw-semibold">Report Period</label>
+                    <select name="period" id="period" class="form-select">
+                        <option value="daily" @(ViewBag.Period == "daily" ? "selected" : "")>Daily</option>
+                        <option value="weekly" @(ViewBag.Period == "weekly" ? "selected" : "")>Weekly</option>
+                        <option value="monthly" @(ViewBag.Period == "monthly" ? "selected" : "")>Monthly</option>
+                    </select>
+
+                </div>
+
+                <div class="col-md-3" id="datePicker" style="@(ViewBag.Period == "daily" || ViewBag.Period == "weekly" ? "" : "display:none;")">
+                    <label for="selectedDate" class="form-label fw-semibold">Select Date</label>
+                    <input type="date" name="selectedDate" id="selectedDate" class="form-control" value="@ViewBag.SelectedDate" />
+                </div>
+
+                <div class="col-md-3 d-grid">
+                    <button type="submit" class="btn btn-gradient btn-lg fw-bold">
+                        <i class="bi bi-search"></i> Generate Report
+                    </button>
+                </div>
+                <div class="col-md-3 d-grid">
+                    <a href="@Url.Action("Index", "SaleItems", new { period = ViewBag.Period, selectedDate = ViewBag.SelectedDate })"
+                       class="btn btn-gradient btn-lg fw-bold d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-book"></i> View Sales
+                    </a>
+
+                </div>
+
+                @*<div class="mt-4 text-center">
+                   
+                    <a href="@Url.Action("Stock", "Products")" class="btn btn-warning">Stock Report</a>
+                    <a href="@Url.Action("ProfitLoss", "Products")" class="btn btn-success">Profit & Loss</a>
+                    <a href="@Url.Action("TopSelling", "Products")" class="btn btn-info">Top Selling Products</a>
+                </div>*@
+
+
+
+            </div>
+            }
+
+            <!-- Report Title -->
+            <div class="text-center my-4">
+                <h4 class="fw-bold">
+                    @(ViewBag.Period == "weekly" ? $"Weekly Report " :
+                                              ViewBag.Period == "monthly" ? $"Monthly Report " :
+                                              "Daily Report ")
+                </h4>
+                <span class="badge bg-secondary fs-6 px-3 py-2">
+                    @(ViewBag.Period == "weekly" ? $"{ViewBag.WeekStart} - {ViewBag.WeekEnd}" :
+                                              ViewBag.Period == "monthly" ? $"{ViewBag.Month}" :
+                                              $"{ViewBag.SelectedDate}")
+                </span>
+            </div>
+
+            <!-- Report Summary -->
+            <div class="row text-center p-2" style="background-color:darkgray">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card-body p-3">
+                            <i class="bi bi-cash-coin fs-4 text-success"></i>
+                            <h5 class="mt-2">Total Revenue</h5>
+                            <p class="fs-5 fw-bold text-success">@String.Format("{0:C}", ViewBag.TotalRevenue ?? 0m)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card-body p-3">
+                            <i class="bi bi-basket-fill fs-4 text-danger"></i>
+                            <h5 class="mt-2">Total Cost</h5>
+                            <p class="fs-5 fw-bold text-danger">@String.Format("{0:C}", ViewBag.TotalCost)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card-body p-3">
+                            <i class="bi bi-graph-up-arrow fs-4 text-primary"></i>
+                            <h5 class="mt-2">Profit</h5>
+                            <p class="fs-5 fw-bold text-primary">@String.Format("{0:C}", ViewBag.Profit ?? 0m)</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Image Below Card -->
+                <div class="text-center mt-4">
+                    <img src="~/dist/assets/img/sales.png" alt="Sales Report Image" class="img-fluid rounded-4 shadow-sm" style="max-width: 100%; height: 400px;" />
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="row g-3">
-        <div class="col-md-4">
-            <div class="card text-white bg-success h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Total Revenue</h5>
-                    <p class="card-text fs-4">@String.Format("{0:C}", ViewBag.TotalRevenue)</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-warning h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Total Cost</h5>
-                    <p class="card-text fs-4">@String.Format("{0:C}", ViewBag.TotalCost)</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-primary h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Profit</h5>
-                    <p class="card-text fs-4">@String.Format("{0:C}", ViewBag.Profit)</p>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="mt-4">
-        <a href="@Url.Action("Index","SaleItems" )" class="btn btn-outline-secondary">View Detailed Sale Items</a>
-    </div>
 </div>
+
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+    .btn-gradient {
+        background: linear-gradient(90deg, #007bff, #00c6ff);
+        border: none;
+        color: white;
+        transition: transform 0.2s ease-in-out;
+    }
+
+        .btn-gradient:hover {
+            transform: scale(1.05);
+        }
+</style>
+
+<script>
+    document.getElementById("period").addEventListener("change", function () {
+        // Clear date when dropdown changes
+        document.getElementById("selectedDate").value = "";
+
+        // Submit the form automatically
+        this.form.submit();
+    });
+
+    function toggleDateField() {
+        var period = document.getElementById("period").value;
+        var datePicker = document.getElementById("datePicker");
+        datePicker.style.display = (period === "daily" || period === "weekly") ? "block" : "none";
+    }
+
+    // Call once on page load
+    toggleDateField();
+</script>
+
