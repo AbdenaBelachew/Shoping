@@ -1,0 +1,66 @@
+﻿@model IEnumerable<Shopping.Models.StockReportViewModel>
+
+<div class="container mt-5">
+    <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-header bg-primary text-white text-center rounded-top-4">
+            <h3 class="mb-0">📦 Stock Report</h3>
+        </div>
+
+        <div class="card-body p-4">
+            <!-- Search Box -->
+            <div class="mb-3">
+                <input type="text" id="stockSearch" class="form-control" placeholder="🔍 Search product or status..." />
+            </div>
+
+            <!-- Scrollable Table -->
+            <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                <table class="table table-hover align-middle" id="stockTable">
+                    <thead class="table-dark sticky-top">
+                        <tr>
+                            <th style="width: 50%;">Product</th>
+                            <th class="text-center">Quantity</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            var rowClass = item.Status == "Out of Stock" ? "table-danger" :
+                                           item.Status == "Low Stock" ? "table-warning" : "table-success";
+
+                            <tr class="@rowClass">
+                                <td>
+                                    <strong>@item.ProductName</strong>
+                                </td>
+                                <td class="text-center">
+                                    <span class="fw-bold">@item.QtyOnHand</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge rounded-pill
+                                        @(item.Status == "Out of Stock" ? "bg-danger" :
+                                          item.Status == "Low Stock" ? "bg-warning text-dark" :
+                                          "bg-success")">
+                                        @item.Status
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Script -->
+<script>
+    document.getElementById("stockSearch").addEventListener("keyup", function () {
+        var searchValue = this.value.toLowerCase();
+        var rows = document.querySelectorAll("#stockTable tbody tr");
+
+        rows.forEach(function (row) {
+            var text = row.innerText.toLowerCase();
+            row.style.display = text.includes(searchValue) ? "" : "none";
+        });
+    });
+</script>
