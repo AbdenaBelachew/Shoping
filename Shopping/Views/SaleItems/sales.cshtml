@@ -5,13 +5,20 @@
         <h4 class="fw-bold text-primary mb-0">
             <i class="bi bi-list-ul me-2"></i> Sales Details
         </h4>
-        <span class="badge bg-gradient px-3 py-2 fs-6 shadow-sm">
+
+        <span class="badge bg-primary px-3 py-2 fs-6 shadow-sm">
             Total Records: @Model.Count()
         </span>
     </div>
 
-    <div class="table-responsive shadow-lg rounded-3">
-        <table class="table table-hover table-bordered align-middle mb-0">
+    <!-- Search -->
+    <div class="mb-3">
+        <input type="text" id="searchSales" class="form-control" placeholder="Search sales by product or date...">
+    </div>
+
+    <!-- Scrollable table -->
+    <div class="table-responsive shadow-lg rounded-3" style="max-height: 500px; overflow-y: auto;">
+        <table class="table table-hover table-bordered align-middle mb-0" id="salesTable">
             <thead class="text-white" style="background: linear-gradient(90deg, #007bff, #00c6ff);">
                 <tr class="text-center">
                     <th>Date</th>
@@ -47,7 +54,14 @@
                 }
             </tbody>
         </table>
+        <div class="mt-4 mb-4 ms-auto m-lg-4">
+
+            <a href="@Url.Action("Stock", "Products")" class="btn btn-warning">Stock Report</a>
+            <a href="@Url.Action("ProfitLoss", "Products")" class="btn btn-success">Profit & Loss</a>
+            <a href="@Url.Action("TopSelling", "Products")" class="btn btn-info">Top Selling Products</a>
+        </div>
     </div>
+   
 </div>
 
 <!-- Bootstrap Icons -->
@@ -63,4 +77,25 @@
         transform: scale(1.01);
         transition: all 0.2s ease-in-out;
     }
+
+    /* Keep table header fixed on scroll */
+    .table-responsive thead th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
 </style>
+
+@section scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#searchSales").on("keyup", function () {
+                var value = $(this).val().toLowerCase();
+                $("#salesTable tbody tr").filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
+            });
+        });
+    </script>
+}
