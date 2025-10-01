@@ -1,0 +1,107 @@
+﻿@{
+    ViewBag.Title = "Login";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewBag.Title - Shopping System</title>
+
+    <link href="~/plugins/login.css" rel="stylesheet" />
+    <style>
+        body {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f2f5; /* Light background */
+        }
+
+        .login-card {
+            max-width: 900px;
+            width: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-left {
+            background: white;
+            padding: 40px;
+        }
+
+            .login-left h2 {
+                font-weight: 700;
+                color: #0d6efd;
+            }
+
+            .login-left .form-control {
+                border-radius: 10px;
+                padding: 12px;
+            }
+
+            .login-left button {
+                border-radius: 10px;
+                padding: 12px;
+                font-size: 1.1rem;
+            }
+
+        .login-right {
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+            .login-right img {
+                max-width: 100%;
+                height: auto;
+            }
+    </style>
+</head>
+<body>
+    <div class="card login-card">
+        <div class="row g-0">
+            <!-- Left side (Form) -->
+            <div class="col-md-6 login-left">
+                <h2 class="mb-4">Welcome Back</h2>
+                <p class="text-muted mb-4">Login to continue managing your shop.</p>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger">@ViewBag.Error</div>
+                }
+
+                @using (Html.BeginForm("Login", "Users", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" name="username" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" required />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Login</button>
+                }
+            </div>
+
+            <!-- Right side (Image) -->
+            <div class="col-md-6 login-right">
+                <img src="~/dist/assets/img/sales.png" alt="Shopping Illustration" />
+            </div>
+        </div>
+    </div>
+
+   
+    <script src="~/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
