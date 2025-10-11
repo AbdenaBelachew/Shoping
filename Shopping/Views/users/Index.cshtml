@@ -1,0 +1,219 @@
+﻿@model IEnumerable<Shopping.Models.user>
+
+@{
+    ViewBag.Title = "Users Management";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+
+<style>
+    /* Hover effect for rows */
+    .table-hover tbody tr:hover {
+        background-color: #f8fbff;
+        transition: 0.3s ease-in-out;
+    }
+
+    /* Expired licenses */
+    .table-danger {
+        background-color: #ffe5e5 !important;
+        font-weight: bold;
+        color: #a94442;
+    }
+
+    /* Gradient buttons */
+    .btn-gradient {
+        background: linear-gradient(90deg, #007bff, #00c6ff);
+        border: none;
+        color: #fff;
+        transition: transform 0.2s;
+    }
+
+        .btn-gradient:hover {
+            transform: scale(1.05);
+        }
+
+    /* Modal Header Styles */
+    .modal-header.bg-gradient {
+        background: linear-gradient(90deg, #ff416c, #ff4b2b);
+        color: white;
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary fw-bold"><i class="bi bi-people"></i> Users Management</h2>
+        @Html.ActionLink("➕ Create New User", "Create", null, new { @class = "btn btn-gradient fw-bold shadow-sm" })
+    </div>
+
+    <div class="table-responsive shadow-lg rounded">
+        <table class="table table-striped table-hover table-bordered align-middle mb-0">
+            <thead class="text-white text-center" style="background: linear-gradient(90deg, #007bff, #00c6ff);">
+                <tr>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Licence</th>
+                    <th>Phone</th>
+                    <th>Role</th>
+                    <th>Created At</th>
+                    <th>Updated At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    var expired = DateTime.Now.Year > Convert.ToInt32(item.Licence) ? "table-danger" : "";
+                    <tr class="@expired text-center" data-user-id="@item.UserId">
+                        <td>@item.username</td>
+                        <td>@item.full_name</td>
+                        <td class="license-field">@item.Licence</td>
+                        <td>@item.phone</td>
+                        <td>@item.role</td>
+                        <td>@item.created_at</td>
+                        <td>@item.updated_at</td>
+                        <td class="d-flex justify-content-center gap-1 flex-wrap">
+                            <button class="btn btn-warning btn-sm edit-license shadow-sm" data-id="@item.UserId">
+                                <i class="bi bi-pencil-square"></i> Update
+                            </button>
+                            <button class="btn btn-danger btn-sm delete-user shadow-sm" data-id="@item.UserId">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Edit License Modal -->
+<div class="modal fade" id="editLicenseModal" tabindex="-1" aria-labelledby="editLicenseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header bg-gradient">
+                <h5 class="modal-title fw-bold" id="editLicenseModalLabel">Edit License</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editLicenseForm" action="@Url.Action("EditLicense", "users")" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="userId" />
+                    <div class="mb-3">
+                        <label for="Licence" class="form-label fw-semibold">License Year</label>
+                        <input type="number" name="Licence" id="Licence" class="form-control" placeholder="e.g., 2025" />
+                        <div class="alert alert-danger mt-2 d-none" id="licenseError"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary shadow-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-gradient shadow-sm" id="saveLicenseBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete User Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle"></i> Confirm Delete</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p>Are you sure you want to delete <strong id="deleteUsername"></strong>?</p>
+                <input type="hidden" id="deleteUserId" />
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary shadow-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger shadow-sm" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/bootstrap")
+
+    <script>
+        $(function () {
+            // Open Edit Modal
+            $('.edit-license').click(function () {
+                var userId = $(this).data('id');
+                $.get('@Url.Action("EditLicense", "users")', { id: userId }, function (data) {
+                    if (data.success === false) {
+                        $('#licenseError').text(data.message).removeClass('d-none');
+                    } else {
+                        $('#userId').val(userId);
+                        $('#Licence').val(data.Licence || '');
+                        $('#licenseError').addClass('d-none');
+                        $('#editLicenseModalLabel').text('Edit License for ' + (data.full_name || 'User'));
+                    }
+                    $('#editLicenseModal').modal('show');
+                }).fail(function () {
+                    $('#licenseError').text('Failed to load user data.').removeClass('d-none');
+                    $('#editLicenseModal').modal('show');
+                });
+            });
+
+            // Save License
+            $('#saveLicenseBtn').click(function () {
+                var form = $('#editLicenseForm');
+                var license = $('#Licence').val().trim();
+
+                if (!license) {
+                    $('#licenseError').text('License is required.').removeClass('d-none');
+                    return;
+                }
+
+                $.post(form.attr('action'), form.serialize(), function (response) {
+                    if (response.success) {
+                        var userId = $('#userId').val();
+                        var row = $('tr[data-user-id="' + userId + '"]');
+                        row.find('.license-field').text(license);
+                        $('#editLicenseModal').modal('hide');
+                        alert(response.message);
+                    } else {
+                        $('#licenseError').text(response.message).removeClass('d-none');
+                    }
+                }).fail(function () {
+                    $('#licenseError').text('Failed to update license.').removeClass('d-none');
+                });
+            });
+
+            // Delete User
+            $('.delete-user').click(function () {
+                var row = $(this).closest('tr');
+                var userId = row.data('user-id');
+                var username = row.find('td').eq(0).text();
+
+                $('#deleteUserId').val(userId);
+                $('#deleteUsername').text(username);
+                $('#deleteUserModal').modal('show');
+            });
+
+            // Confirm Delete
+            $('#confirmDeleteBtn').click(function () {
+                var userId = $('#deleteUserId').val();
+                $.post('@Url.Action("DeleteConfirmed", "users")', {
+                    id: userId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                }, function (response) {
+                    if (response.success) {
+                        $('tr[data-user-id="' + userId + '"]').fadeOut(500, function () { $(this).remove(); });
+                        $('#deleteUserModal').modal('hide');
+                        alert(response.message);
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                }).fail(function () {
+                    alert('Failed to delete user.');
+                });
+            });
+        });
+    </script>
+}
