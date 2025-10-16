@@ -11,6 +11,12 @@ namespace Shopping.Controllers
     {
         private dambalEntities db = new dambalEntities();
 
+        public ActionResult CompanyInfo()
+        {
+            return View();
+        }
+
+
         public ActionResult Index()
         {  // Example calculations - adjust based on your models
 
