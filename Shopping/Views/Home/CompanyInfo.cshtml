@@ -1,0 +1,94 @@
+﻿@{
+    ViewBag.Title = "About Us - ASANA TECHNOLOGY";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .company-card {
+        max-width: 900px;
+        margin: 0 auto;
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .company-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+    .company-img {
+        max-height: 250px;
+        object-fit: contain;
+    }
+
+    .company-header {
+        color: #0d6efd;
+        font-weight: 700;
+    }
+
+    .contact-list i {
+        color: #0d6efd;
+    }
+
+    .btn-custom {
+        border-radius: 30px;
+        padding: 8px 20px;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold text-primary">About ASANA TECHNOLOGY</h1>
+        <p class="text-muted">Empowering Digital Transformation through Smart Technology Solutions</p>
+    </div>
+
+    <div class="card shadow company-card">
+        <div class="row g-0 align-items-center">
+
+            <!-- Company Image -->
+            <div class="col-md-5 text-center bg-light p-4">
+                <img src="~/dist/assets/img/asana 3.png"
+                     alt="ASANA TECHNOLOGY Logo"
+                     class="img-fluid company-img rounded-4 shadow-sm">
+            </div>
+
+            <!-- Company Details -->
+            <div class="col-md-7 p-4">
+                <h2 class="company-header mb-3">ASANA TECHNOLOGY</h2>
+                <p class="text-secondary mb-3">
+                    ASANA Technology is a leading provider of innovative IT solutions, specializing in
+                    software development, systems integration, and digital transformation.
+                    We help businesses achieve efficiency through tailored, scalable, and reliable technology services.
+                </p>
+
+                <h5 class="fw-semibold mt-4 mb-3">📞 Contact Information</h5>
+                <ul class="list-unstyled contact-list">
+                    <li class="mb-2"><i class="bi bi-geo-alt-fill me-2"></i> Bole Sub-City, Addis Ababa, Ethiopia</li>
+                    <li class="mb-2"><i class="bi bi-telephone-fill me-2"></i> +251 966 780 537 / +251 917 780 937</li>
+                    <li class="mb-2"><i class="bi bi-envelope-fill me-2"></i> info@asanatech.et</li>
+                    <li>
+                        <i class="bi bi-globe2 me-2"></i>
+                        <a href="https://asanatech.et" target="_blank" class="text-decoration-none">www.asanatech.et</a>
+                    </li>
+                </ul>
+
+                <div class="mt-4">
+                    <a href="mailto:info@asanatech.et" class="btn btn-primary btn-custom me-2">
+                        <i class="bi bi-envelope-paper"></i> Contact Us
+                    </a>
+                    <a href="https://asanatech.et" target="_blank" class="btn btn-outline-secondary btn-custom">
+                        <i class="bi bi-globe"></i> Visit Website
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
